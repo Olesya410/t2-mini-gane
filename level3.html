@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Лабиринт с порталами</title>
+<style>
+  body { margin:0; background:linear-gradient(135deg,#e3f2fd,#bbdefb); font-family:monospace; overflow:hidden; color:#000; }
+  canvas { display:block; margin:40px auto; box-shadow:0 8px 24px rgba(0,0,0,0.15); border-radius:8px; border:2px solid #000; }
+  #introScreen { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.92); display:flex; justify-content:center; align-items:center; z-index:100; padding:20px; box-sizing:border-box; flex-direction:column; backdrop-filter:blur(4px); text-align:center; }
+  #introScreen h1 { font-size:42px; margin:0 0 10px 0; color:#f3219c; }
+  #introScreen p { font-size:20px; color:#555; max-width:600px; line-height:1.5; }
+  .game-over-screen { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); display:none; justify-content:center; align-items:center; flex-direction:column; z-index:100; }
+  .game-over-screen h1 { font-size:48px; margin:0 0 10px 0; color:#28a745; }
+  .game-over-screen p { font-size:20px; color:#333; margin:10px 0; }
+  button { padding:12px 24px; font-size:18px; cursor:pointer; border-radius:8px; border:none; transition:all 0.2s; margin-top:15px; }
+  #startBtn {       display: inline-block;
+      margin-top: 20px;
+      padding: 12px 24px;
+      font-size: 16px;
+      background: #f3219c;
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      text-decoration: none;
+      cursor: pointer;
+      font-family: sans-serif; }
+  #startBtn:hover { background:#d11a87; transform:scale(1.05); }
+  #retryBtn { background:#6c757d; color:#fff; }
+  #retryBtn:hover { background:#5a6268; }
+  .btn-style{
+          display: inline-block;
+      margin-top: 20px;
+      padding: 12px 24px;
+      font-size: 16px;
+      background: #f3219c;
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      text-decoration: none;
+      cursor: pointer;
+      font-family: sans-serif;
+  }
+</style>
+</head>
+<body>
+
+<div id="introScreen">
+  <h1>Лабиринт с порталами</h1>
+  <p>Проведи шарик через лабиринт.<br>
+     Коснись портала — попадёшь в мини-игру.<br>
+     После мини-игры вернёшься обратно.<br>
+     Доберись до финиша — и ты победил!</p>
+  <button id="startBtn">Начать игру</button>
+</div>
+
+<div id="winScreen" class="game-over-screen">
+  <h1>Молодец!</h1>
+  <p>Ты прошёл лабиринт!</p>
+  <a href="end.html" class="btn-style">Дальше</a>
+</div>
+
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const introScreen = document.getElementById('introScreen');
+const winScreen = document.getElementById('winScreen');
+const startBtn = document.getElementById('startBtn');
+
+let gameOver = false;
+const cell = 40, cols = 20, rows = 15;
+
+const grid = [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1],
+  [1,0,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1],
+  [1,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
+  [1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,1,1,0,1,1],
+  [1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+  [1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,0,1],
+  [1,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,1],
+  [1,0,1,1,1,0,1,0,1,1,1,1,1,1,1,1,0,1,0,1],
+  [1,0,1,0,0,0,1,0,1,0,0,0,0,0,0,1,0,0,0,1],
+  [1,0,1,0,1,1,1,0,1,0,1,1,1,1,0,1,1,1,0,1],
+  [1,0,1,0,1,0,0,0,1,0,1,0,0,1,0,0,0,1,0,1],
+  [1,0,0,0,1,0,1,1,1,0,1,0,1,1,1,1,0,1,0,1],
+  [1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+];
+
+const ball = { x: 60, y: 60, radius: 14, speed: 4 };
+const startX = 1, startY = 1;
+const finishX = 18, finishY = 13;
+
+const portals = [
+  { col: 9, row: 7, color: '#ff00ff', label: '1', target: 'game2.html' },
+  // { col: 16, row: 3, color: '#00ffff', label: '2', target: 'game1.html' }
+];
+
+let portalAngle = 0;
+const keys = {};
+
+window.addEventListener('keydown', e => {
+  if (e.key.startsWith('Arrow')) e.preventDefault();
+  keys[e.key] = true;
+});
+window.addEventListener('keyup', e => keys[e.key] = false);
+
+startBtn.addEventListener('click', startGame);
+
+function startGame() {
+  introScreen.style.display = 'none';
+  ball.x = startX * cell + cell / 2;
+  ball.y = startY * cell + cell / 2;
+  gameLoop();
+}
+
+function isWall(col, row) {
+  if (col < 0 || col >= cols || row < 0 || row >= rows) return true;
+  return grid[row][col] === 1;
+}
+
+function checkWallCollision(x, y, r) {
+  const minCol = Math.floor((x - r) / cell), maxCol = Math.floor((x + r) / cell);
+  const minRow = Math.floor((y - r) / cell), maxRow = Math.floor((y + r) / cell);
+  for (let row = minRow; row <= maxRow; row++)
+    for (let col = minCol; col <= maxCol; col++)
+      if (isWall(col, row)) {
+        const rx = col * cell, ry = row * cell;
+        const cx = Math.max(rx, Math.min(x, rx + cell));
+        const cy = Math.max(ry, Math.min(y, ry + cell));
+        const dx = x - cx, dy = y - cy;
+        if (dx * dx + dy * dy < r * r) return true;
+      }
+  return false;
+}
+
+function checkPortalCollision(x, y, r) {
+  for (let i = 0; i < portals.length; i++) {
+    const p = portals[i];
+    const px = p.col * cell + cell / 2, py = p.row * cell + cell / 2;
+    const dx = x - px, dy = y - py;
+    if (dx * dx + dy * dy < (r + 12) * (r + 12)) return i;
+  }
+  return -1;
+}
+
+function drawFrame() {
+  ctx.fillStyle = '#6998f0';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  for (let row = 0; row < rows; row++)
+    for (let col = 0; col < cols; col++) {
+      const x = col * cell, y = row * cell;
+      if (grid[row][col] === 1) { ctx.fillStyle = '#444'; ctx.fillRect(x, y, cell, cell); }
+      ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1;
+      ctx.strokeRect(x, y, cell, cell);
+    }
+
+  // Старт
+  ctx.fillStyle = 'rgba(0,255,100,0.3)';
+  ctx.fillRect(startX * cell, startY * cell, cell, cell);
+  ctx.strokeStyle = '#00ff64'; ctx.lineWidth = 2;
+  ctx.strokeRect(startX * cell, startY * cell, cell, cell);
+  ctx.fillStyle = '#fff'; ctx.font = '10px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('START', startX * cell + 2, startY * cell + 14);
+
+  // Финиш
+  const fpx = finishX * cell, fpy = finishY * cell;
+  ctx.fillStyle = 'rgba(40,167,69,0.4)';
+  ctx.fillRect(fpx, fpy, cell, cell);
+  ctx.strokeStyle = '#28a745'; ctx.lineWidth = 3;
+  ctx.strokeRect(fpx, fpy, cell, cell);
+  ctx.fillStyle = '#fff';
+  ctx.fillText('FINISH', fpx + 2, fpy + 14);
+
+  // Порталы
+  portalAngle += 0.05;
+  portals.forEach(p => {
+    const px = p.col * cell + cell / 2, py = p.row * cell + cell / 2;
+    const glowR = 18 + Math.sin(portalAngle * 2) * 3;
+    const grad = ctx.createRadialGradient(px, py, 0, px, py, glowR);
+    grad.addColorStop(0, p.color);
+    grad.addColorStop(0.5, p.color + '80');
+    grad.addColorStop(1, p.color + '00');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(px, py, glowR, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(px, py, 10, portalAngle, portalAngle + Math.PI * 1.5);
+    ctx.strokeStyle = p.color; ctx.lineWidth = 3; ctx.stroke();
+    ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(p.label, px, py - 22); ctx.textAlign = 'left';
+  });
+
+  // Шарик
+  ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffd700'; ctx.shadowBlur = 15; ctx.shadowColor = '#ffd700'; ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+function gameLoop() {
+  if (gameOver) return;
+
+  let nx = ball.x, ny = ball.y;
+  if (keys['ArrowUp']) ny -= ball.speed;
+  if (keys['ArrowDown']) ny += ball.speed;
+  if (keys['ArrowLeft']) nx -= ball.speed;
+  if (keys['ArrowRight']) nx += ball.speed;
+  if (!checkWallCollision(nx, ball.y, ball.radius)) ball.x = nx;
+  if (!checkWallCollision(ball.x, ny, ball.radius)) ball.y = ny;
+
+  // Касание портала → переход
+  const pIdx = checkPortalCollision(ball.x, ball.y, ball.radius);
+  if (pIdx >= 0) {
+    location.href = portals[pIdx].target;
+    return;
+  }
+
+  // Финиш → победа
+  const fdx = ball.x - (finishX * cell + cell / 2);
+  const fdy = ball.y - (finishY * cell + cell / 2);
+  if (fdx * fdx + fdy * fdy < (cell / 2 + ball.radius) * (cell / 2 + ball.radius)) {
+    gameOver = true;
+    winScreen.style.display = 'flex';
+    return;
+  }
+
+  drawFrame();
+  requestAnimationFrame(gameLoop);
+}
+
+drawFrame();
+</script>
+</body>
+</html>
