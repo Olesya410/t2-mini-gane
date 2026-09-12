@@ -23,7 +23,7 @@
     }
 
     video {
-      max-width: 90%;
+      width: 90%;
       border-radius: 8px;
     }
 
@@ -73,10 +73,9 @@
       box-sizing: border-box;
     }
     .content-text {
-      max-width: 80%;
+      width: 80%;
     }
 
-    /* Кнопка «Перейти дальше» */
     #nextLevelBtn {
       display: inline-block;
       margin-top: 20px;
@@ -124,9 +123,9 @@
     <div class="content">
       <div class="content-text">
         <div style="font-size: 30px; margin-bottom: 20px;">Ты готов пройти игру и узнать лучше профессию инженер‑телеком!</div>
-        <div style="font-size: 26px;">Тебе предстоит 3 уровня: от спасения с дрона до прокладки сети. Удачи!</div>
+        <div style="font-size: 26px;">Тебе предстоит 3 уровня: от спасения курьераробота до прокладки сети. Удачи!</div>
         <!-- Кнопка вместо ссылки -->
-        <button id="nextLevelBtn">Перейти дальше</button>
+        <button id="nextLevelBtn">Дальше</button>
       </div>
     </div>
   </div>
@@ -168,11 +167,6 @@
       // Скрываем видео и оверлей
       videoWrapper.style.display = 'none';
       overlay.style.display = 'none';
-
-      // Показываем контейнер игры
-      gameContainer.style.display = 'block';
-
-      console.log('Игра запущена (анимация/загрузка)');
 
       // Переход на следующую страницу через 0.5 секунды
       setTimeout(() => {

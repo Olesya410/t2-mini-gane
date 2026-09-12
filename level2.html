@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -8,7 +8,7 @@
   <style>
     body {
       margin: 0;
-      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+   
       font-family: monospace;
       overflow: hidden;
       color: #000;
@@ -62,7 +62,7 @@
     }
 
     /* Экраны конца игры */
-    .game-over-screen {
+     .game-over-screen {
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
@@ -74,9 +74,9 @@
       z-index: 100;
     }
     .game-over-screen h1 {
-      font-size: 48px;
+      font-size: 65px;
       margin: 0 0 10px 0;
-      color: #28a745;
+      color: #000000;
     }
     .game-over-screen.lose h1 { color: #dc3545; }
     .game-over-screen p {
@@ -106,7 +106,7 @@
   <!-- Заставка -->
   <div id="introScreen">
     <h1>Это второй уровень</h1>
-    <p>Ваша задача: собрать все пакеты и избегать препятствий.<br>
+    <p>Ваша задача: собрать все данные и избегать препятствий.<br>
        Используйте стрелки для управления.<br>
        Нажмите любую клавишу, чтобы начать.</p>
   </div>
@@ -167,8 +167,8 @@
       packets.push({
         x: Math.random() * 800 + 100,
         y: Math.random() * 400 + 50,
-        width: 50,
-        height: 50,
+        width: 80,
+        height: 80,
         collected: false
       });
     }
@@ -356,362 +356,3 @@
   </script>
 </body>
 </html>
-=======
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Доставка: Уровень 2</title>
-  <style>
-    body {
-      margin: 0;
-      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-      font-family: monospace;
-      overflow: hidden;
-      color: #000;
-    }
-    canvas {
-      display: block;
-      margin: 40px auto;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-      border-radius: 8px;
-      border: 2px solid #000000;
-    }
-
-    /* Экран старта (стиль стекла) */
-    #introScreen {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(255,255,255,0.92);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 100;
-      padding: 20px;
-      box-sizing: border-box;
-      flex-direction: column;
-      backdrop-filter: blur(4px);
-      text-align: center;
-    }
-    #nextBtn{
-              display: inline-block;
-      margin-top: 20px;
-      padding: 12px 24px;
-      font-size: 16px;
-      background: #f3219c;
-      color: #fff;
-      border-radius: 50px;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    #introScreen h1 {
-      font-size: 42px;
-      margin: 0 0 10px 0;
-      color: #f3219c; /* Розовый цвет заголовка */
-    }
-    #introScreen p {
-      font-size: 20px;
-      color: #555;
-      max-width: 600px;
-      line-height: 1.5;
-    }
-
-    /* Экраны конца игры */
-    .game-over-screen {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(255,255,255,0.95);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      z-index: 100;
-    }
-    .game-over-screen h1 {
-      font-size: 48px;
-      margin: 0 0 10px 0;
-      color: #28a745;
-    }
-    .game-over-screen.lose h1 { color: #dc3545; }
-    .game-over-screen p {
-      font-size: 20px;
-      color: #333;
-      margin: 10px 0;
-    }
-
-    /* Кнопки */
-    button {
-      padding: 12px 24px;
-      font-size: 18px;
-      cursor: pointer;
-      border-radius: 8px;
-      border: none;
-      transition: all 0.2s;
-    }
-    #retryBtn {
-      background: #6c757d;
-      color: white;
-    }
-    #retryBtn:hover { background: #5a6268; }
-  </style>
-</head>
-<body>
-
-  <!-- Заставка -->
-  <div id="introScreen">
-    <h1>Это второй уровень</h1>
-    <p>Ваша задача: собрать все пакеты и избегать препятствий.<br>
-       Используйте стрелки для управления.<br>
-       Нажмите любую клавишу, чтобы начать.</p>
-  </div>
-
-  <canvas id="gameCanvas" width="1000" height="600"></canvas>
-
-  <!-- Экран победы -->
-  <div id="winScreen" class="game-over-screen">
-    <h1>Молодец!</h1>
-    <p>Вы успешно доставили все грузы!</p>
-    <a href="level3.html" id="nextBtn" class="nextBtn">Дальше</a>
-  </div>
-
-  <!-- Экран поражения -->
-  <div id="loseScreen" class="game-over-screen lose">
-    <h1>Поражение</h1>
-    <p>Вы столкнулись с препятствием!</p>
-    <button id="retryBtn">Ещё раз</button>
-  </div>
-
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-
-    const introScreen = document.getElementById('introScreen');
-    const winScreen = document.getElementById('winScreen');
-    const loseScreen = document.getElementById('loseScreen');
-    const retryBtn = document.getElementById('retryBtn');
-
-    let gameOver = false;
-    let gameRunning = false;
-    let score = 0;
-    let timer = 60;
-
-    // Игрок
-    const player = {
-      x: 50,
-      y: 250,
-      width: 80,
-      height: 80,
-      speed: 5
-    };
-
-    // Картинки (ПУТИ К ФАЙЛАМ)
-    const playerImg = new Image();
-    playerImg.src = 'image/666.png';
-
-    const packetImg = new Image();
-    packetImg.src = 'image/555.png';
-
-    const obstacleImg = new Image();
-    obstacleImg.src = 'image/obstacle.png';
-
-    // Пакеты
-    const packets = [];
-    const packetCount = 7;
-    for (let i = 0; i < packetCount; i++) {
-      packets.push({
-        x: Math.random() * 800 + 100,
-        y: Math.random() * 400 + 50,
-        width: 50,
-        height: 50,
-        collected: false
-      });
-    }
-
-    // Препятствия
-    const obstacles = [];
-    const obstacleCount = 5;
-    for (let i = 0; i < obstacleCount; i++) {
-      obstacles.push({
-        x: Math.random() * 800 + 100,
-        y: Math.random() * 400 + 50,
-        width: 40,
-        height: 40,
-        speedX: (Math.random() - 0.5) * 4,
-        speedY: (Math.random() - 0.5) * 4
-      });
-    }
-
-    const keys = {};
-    window.addEventListener('keydown', (e) => {
-      keys[e.key] = true;
-      if (introScreen.style.display !== 'none') {
-        startGame();
-      }
-    });
-    window.addEventListener('keyup', (e) => { keys[e.key] = false; });
-
-    retryBtn.addEventListener('click', () => location.reload());
-
-    function startGame() {
-      introScreen.style.display = 'none';
-      winScreen.style.display = 'none';
-      loseScreen.style.display = 'none';
-
-      gameOver = false;
-      gameRunning = true;
-      score = 0;
-      timer = 60;
-
-      let imagesLoaded = 0;
-      const totalImages = 3;
-
-      function checkReady() {
-        imagesLoaded++;
-        if (imagesLoaded === totalImages) {
-          gameLoop();
-        }
-      }
-
-      playerImg.onload = checkReady;
-      packetImg.onload = checkReady;
-      obstacleImg.onload = checkReady;
-
-      // Проверка, если картинки уже закэшированы
-      if (playerImg.complete) checkReady();
-      if (packetImg.complete) checkReady();
-      if (obstacleImg.complete) checkReady();
-    }
-
-    function gameLoop() {
-      if (!gameRunning || gameOver) return;
-
-      // Фон
-      ctx.fillStyle = '#6998f0';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      moveObstacles();
-      checkCollisions();
-      checkWinCondition();
-      movePlayer();
-
-      // Отрисовка препятствий
-      obstacles.forEach(obs => {
-        if (obstacleImg.complete && obstacleImg.naturalWidth !== 0) {
-          ctx.drawImage(obstacleImg, obs.x, obs.y, obs.width, obs.height);
-        } else {
-          // Фолбэк: красный квадрат, если картинки нет
-          ctx.fillStyle = 'red';
-          ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-        }
-      });
-
-      // Отрисовка пакетов
-      packets.forEach(pkt => {
-        if (!pkt.collected) {
-          if (packetImg.complete && packetImg.naturalWidth !== 0) {
-            ctx.drawImage(packetImg, pkt.x, pkt.y, pkt.width, pkt.height);
-          } else {
-            // Фолбэк: зеленый квадрат
-            ctx.fillStyle = 'green';
-            ctx.fillRect(pkt.x, pkt.y, pkt.width, pkt.height);
-          }
-        }
-      });
-
-      // Отрисовка игрока
-      if (playerImg.complete && playerImg.naturalWidth !== 0) {
-        ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
-      } else {
-        // Фолбэк: синий квадрат
-        ctx.fillStyle = 'blue';
-        ctx.fillRect(player.x, player.y, player.width, player.height);
-      }
-
-      // Интерфейс
-      ctx.fillStyle = 'black';
-      ctx.font = '20px monospace';
-      ctx.fillText('Время: ' + timer + ' сек', 10, 30);
-      ctx.fillText('Собрано: ' + score + ' / ' + packetCount, 10, 60);
-
-      requestAnimationFrame(gameLoop);
-    }
-
-    function moveObstacles() {
-      obstacles.forEach(obs => {
-        obs.x += obs.speedX;
-        obs.y += obs.speedY;
-        // Отскок от стен
-        if (obs.x <= 0 || obs.x + obs.width >= canvas.width) obs.speedX *= -1;
-        if (obs.y <= 0 || obs.y + obs.height >= canvas.height) obs.speedY *= -1;
-      });
-    }
-
-    function movePlayer() {
-      if (keys['ArrowUp']) player.y -= player.speed;
-      if (keys['ArrowDown']) player.y += player.speed;
-      if (keys['ArrowLeft']) player.x -= player.speed;
-      if (keys['ArrowRight']) player.x += player.speed;
-
-      // Границы экрана
-      player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
-      player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
-    }
-
-    function checkCollisions() {
-      // Столкновение с препятствиями
-      for (let obs of obstacles) {
-        if (
-          player.x < obs.x + obs.width &&
-          player.x + player.width > obs.x &&
-          player.y < obs.y + obs.height &&
-          player.y + player.height > obs.y
-        ) {
-          gameOver = true;
-          gameRunning = false;
-          loseScreen.style.display = 'flex';
-          return;
-        }
-      }
-
-      // Сбор пакетов
-      packets.forEach(pkt => {
-        if (!pkt.collected &&
-          player.x < pkt.x + pkt.width &&
-          player.x + player.width > pkt.x &&
-          player.y < pkt.y + pkt.height &&
-          player.y + player.height > pkt.y
-        ) {
-          pkt.collected = true;
-          score++;
-        }
-      });
-    }
-
-    function checkWinCondition() {
-      const allCollected = packets.every(p => p.collected);
-      if (allCollected && !gameOver) {
-        gameOver = true;
-        gameRunning = false;
-        winScreen.style.display = 'flex';
-      }
-    }
-
-    // Таймер
-    setInterval(() => {
-      if (gameRunning && !gameOver) {
-        timer--;
-        if (timer <= 0) {
-          gameOver = true;
-          gameRunning = false;
-          loseScreen.style.display = 'flex';
-        }
-      }
-    }, 1000);
-  </script>
-</body>
-</html>
->>>>>>> 0bc2a63a545481e550f1bdf4233898f2067316fb
