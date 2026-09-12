@@ -26,6 +26,33 @@
       width: 90%;
       border-radius: 8px;
     }
+    #nextLevelBtn { 
+      background:#fff; 
+      color:#d61a9b; 
+      border:2px solid #d61a9b; 
+      padding:10px 22px; 
+      font-size:15px; 
+      cursor:pointer; 
+      border-radius:50px; 
+      transition:all 0.2s; 
+      font-family:monospace; 
+      box-shadow:0 0 0 0 rgba(243,33,156,0.3);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: sans-serif; 
+    }
+  #nextLevelBtn:hover:not(:disabled) {
+     background:#d61a9b; 
+     color:#fff; 
+     transform:scale(1.05);
+      box-shadow:0 0 15px rgba(243,33,156,0.5);
+     }
+  #nextLevelBtn:disabled {
+     opacity:0.5; 
+     cursor:not-allowed; 
+     filter:grayscale(1);
+    }
+ 
 
     /* Кнопка включения звука */
     #soundBtn {
@@ -33,14 +60,16 @@
       top: 40px;
       padding: 10px 20px;
       font-size: 16px;
-      background: #333;
+      background:#d61a9b;
       color: #fff;
       border: none;
       border-radius: 6px;
       cursor: pointer;
       z-index: 20;
     }
-    #soundBtn:hover { background: #555; }
+    #soundBtn:hover {
+       background: #e21da4; 
+      }
 
     /* Оверлей */
     #blackOverlay {
@@ -71,12 +100,12 @@
       justify-content: center;
       align-items: center;
       box-sizing: border-box;
-    }
+    } 
     .content-text {
       width: 80%;
     }
 
-    #nextLevelBtn {
+    /* #nextLevelBtn {
       display: inline-block;
       margin-top: 20px;
       padding: 12px 24px;
@@ -88,10 +117,10 @@
       text-decoration: none;
       cursor: pointer;
       font-family: sans-serif;
-    }
-    #nextLevelBtn:hover {
+    } */
+    /* #nextLevelBtn:hover {
       background: #d61b83;
-    }
+    } */
 
     /* Контейнер игры */
     #gameContainer {
@@ -119,13 +148,13 @@
     <video id="introVideo" src="video/2(1).mp4" autoplay muted playsinline></video>
   </div>
 
+
   <div id="blackOverlay">
     <div class="content">
-      <div class="content-text">
-        <div style="font-size: 30px; margin-bottom: 20px;">Ты готов пройти игру и узнать лучше профессию инженер‑телеком!</div>
-        <div style="font-size: 26px;">Тебе предстоит 3 уровня: от спасения курьераробота до прокладки сети. Удачи!</div>
-        <!-- Кнопка вместо ссылки -->
-        <button id="nextLevelBtn">Дальше</button>
+      <div class="content-text" style="max-width: 600px; width: 80%;">
+        <div style="font-size: 33px; color:#070707;  margin:0 0 12px 0;">Ты готов пройти игру и узнать лучше профессию инженер‑телеком!</div>
+        <div style="font-size: 20px; color:#3d3d3d; margin:15px 0; ">Тебе предстоит 3 уровня: от спасения курьераробота до прокладки сети. Удачи!</div>
+        <button id="nextLevelBtn">Старт</button>
       </div>
     </div>
   </div>
@@ -141,6 +170,7 @@
     const videoWrapper = document.getElementById('videoWrapper');
     const soundBtn = document.getElementById('soundBtn');
     const nextLevelBtn = document.getElementById('nextLevelBtn');
+    const introScreen = document.getElementById('introScreen');
 
     let soundEnabled = false;
 

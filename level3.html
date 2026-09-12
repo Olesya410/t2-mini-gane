@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Лабиринт с порталам</title>
 <style>
-  body { margin:0; background:linear-gradient(135deg,#e3f2fd,#bbdefb); font-family:monospace; overflow:hidden; color:#000; }
+  body { margin:0; background:linear-gradient(135deg,#e3f2fd,#f0f2f3); font-family:monospace; overflow:hidden; color:#000; }
   canvas { display:block; margin:40px auto; box-shadow:0 8px 24px rgba(0,0,0,0.15); border-radius:8px; border:2px solid #000; }
-  #introScreen { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.92); display:flex; justify-content:center; align-items:center; z-index:100; padding:20px; box-sizing:border-box; flex-direction:column; backdrop-filter:blur(4px); text-align:center; }
+  #introScreen { position:fixed; top:0; left:0; width:100%; height:100%; background:rgb(255, 255, 255); display:flex; justify-content:center; align-items:center; z-index:100; padding:20px; box-sizing:border-box; flex-direction:column; backdrop-filter:blur(4px); text-align:center; }
   #introScreen h1 { font-size:42px; margin:0 0 10px 0; color:#f3219c; }
   #introScreen p { font-size:20px; color:#555; max-width:600px; line-height:1.5; }
   .game-over-screen { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); display:none; justify-content:center; align-items:center; flex-direction:column; z-index:100; }
@@ -47,11 +47,11 @@
 <body>
 
 <div id="introScreen">
-  <h1>Лабиринт с порталам</h1>
-  <p>Проведи шарик через лабиринт.<br>
-     Коснись портала — попадёшь в мини-игру.<br>
-     После мини-игры вернёшься обратно.<br>
-     Доберись до финиша — и ты победил!</p>
+  <h1>Третий уровень</h1>
+  <p>Ваша задача: провести шарик через лабиринт.<br>
+     Коснитесь портала —  и попадёшь в мини-игру.<br>
+     После мини-игры вернётесь обратно.<br>
+     Доберитесь до финиша — и вы победили!</p>
   <button id="startBtn">Начать игру</button>
 </div>
 
