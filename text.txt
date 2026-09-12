@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -563,3 +564,570 @@ retryBtn.addEventListener('click', () => { loseScreen.classList.remove('show'); 
 </script>
 </body>
 </html>
+=======
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Дрон с лекарствами</title>
+<style>
+  body {
+    margin: 0;
+    background: #000; /* Черный фон страницы */
+    display: flex;
+    justify-content: center; /* Центр по горизонтали */
+    align-items: center; /* Центр по вертикали */
+    height: 100vh; /* Высота 100 окна просмотра */
+  }
+  canvas {
+    background: #111; /* Можно оставить темным для игры */
+    display: block;
+  }
+</style>
+</head>
+<body>
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let gameOver = false;
+let hits = 0;
+const maxHits = 3;
+
+const messageEl = document.createElement('div');
+messageEl.style.position = 'absolute';
+messageEl.style.top = '20px';
+messageEl.style.width = '100%';
+messageEl.style.textAlign = 'center';
+messageEl.style.color = '#fff';
+messageEl.style.fontSize = '24px';
+document.body.appendChild(messageEl);
+
+// Игрок — сигнал
+const signal = {
+  x: 50,
+  y: 550,
+  width: 20,
+  height: 20,
+  color: ' #0ff',
+  speed: 5
+};
+
+// Цель — дрон
+const drone = {
+  x: 700,
+  y: 300,
+  width: 60,
+  height: 40,
+  color: 'gray'
+};
+
+// Птицы — враги
+const birds = [];
+const birdCount = 5;
+
+// Обработка клавиш
+const keys = {};
+window.addEventListener('keydown', (e) => { keys[e.key] = true; });
+window.addEventListener('keyup', (e) => { keys[e.key] = false; });
+
+// Создаем птиц
+for (let i = 0; i < birdCount; i++) {
+  birds.push({
+    x: Math.random() * 700 + 50,
+    y: Math.random() * 200 + 50,
+    width: 40,
+    height: 30,
+    speedX: (Math.random() - 0.5) * 4,
+    speedY: (Math.random() - 0.5) * 4,
+    color: 'brown'
+  });
+}
+
+// Создаем изображение для птицы
+const birdImage = new Image();
+birdImage.src = 'image/птица-converted.jpeg';
+
+// После загрузки изображения запускаем игру
+birdImage.onload = () => {
+  // Основной цикл
+  function gameLoop() {
+    if (gameOver) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    moveBirds();
+    checkCollisions();
+    moveSignal();
+    checkArrival();
+
+    // Рисуем птиц изображением
+    birds.forEach(b => {
+      ctx.drawImage(birdImage, b.x, b.y, b.width, b.height);
+    });
+
+    // Рисуем дрон
+    ctx.fillStyle = drone.color;
+    ctx.fillRect(drone.x, drone.y, drone.width, drone.height);
+
+    // Рисуем сигнал
+    ctx.fillStyle = signal.color;
+    ctx.fillRect(signal.x, signal.y, signal.width, signal.height);
+
+    // Таймер и сообщение
+    ctx.fillStyle = 'white';
+    ctx.font = '20px Arial';
+    ctx.fillText('Поражений: ' + hits + ' / ' + maxHits, 10, 20);
+    ctx.fillText('Долететь до дрона', 10, 50);
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  gameLoop();
+};
+
+// Обновление птиц
+function moveBirds() {
+  birds.forEach(bird => {
+    bird.x += bird.speedX;
+    bird.y += bird.speedY;
+    if (bird.x < 0 || bird.x + bird.width > canvas.width) bird.speedX *= -1;
+    if (bird.y < 0 || bird.y + bird.height > canvas.height) bird.speedY *= -1;
+  });
+}
+
+// Проверка столкновений сигнала с птицами
+function checkCollisions() {
+  for (let bird of birds) {
+    if (
+      signal.x < bird.x + bird.width &&
+      signal.x + signal.width > bird.x &&
+      signal.y < bird.y + bird.height &&
+      signal.y + signal.height > bird.y
+    ) {
+      hits++;
+      if (hits >= maxHits) {
+        gameOver = true;
+        messageEl.innerText = 'Птицы поймали сигнал! Игра окончена.';
+      }
+    }
+  }
+}
+
+// Обработка перемещения сигнала
+function moveSignal() {
+  if (keys['ArrowUp']) signal.y -= signal.speed;
+  if (keys['ArrowDown']) signal.y += signal.speed;
+  if (keys['ArrowLeft']) signal.x -= signal.speed;
+  if (keys['ArrowRight']) signal.x += signal.speed;
+  // границы
+  signal.x = Math.max(0, Math.min(canvas.width - signal.width, signal.x));
+  signal.y = Math.max(0, Math.min(canvas.height - signal.height, signal.y));
+}
+
+// Проверка достижения дрона
+function checkArrival() {
+  if (
+    signal.x < drone.x + drone.width &&
+    signal.x + signal.width > drone.x &&
+    signal.y < drone.y + drone.height &&
+    signal.y + signal.height > drone.y
+  ) {
+    if (!gameOver && hits < maxHits) {
+      gameOver = true;
+      messageEl.innerText = 'Вы успешно доставили лекарства! Победа!';
+    }
+  }
+}
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Memory Match</title>
+<style>
+  body { margin:0; background:linear-gradient(135deg,#ffeef5,#fff8f0); color:#333; font-family:'Segoe UI',Tahoma,sans-serif; overflow:hidden; display:flex; flex-direction:column; align-items:center; min-height:100vh; justify-content:center; }
+  #ui { display:flex; gap:20px; align-items:center; margin-bottom:24px; padding:14px 28px; background:rgba(255,255,255,0.8); border:1px solid rgba(243,33,156,0.3); border-radius:20px; backdrop-filter:blur(10px); font-size:16px; box-shadow:0 4px 15px rgba(243,33,156,0.1); }
+  .stat { text-shadow:0 0 4px rgba(243,33,156,0.4); min-width:110px; text-align:center; font-weight:600; color:#d61a9b; }
+  button { background:#fff; color:#d61a9b; border:2px solid #d61a9b; padding:10px 22px; font-size:15px; cursor:pointer; border-radius:50px; transition:all 0.2s; font-family:monospace; box-shadow:0 0 0 0 rgba(243,33,156,0.3); }
+  button:hover:not(:disabled) { background:#d61a9b; color:#fff; transform:scale(1.05); box-shadow:0 0 15px rgba(243,33,156,0.5); }
+  button:disabled { opacity:0.5; cursor:not-allowed; filter:grayscale(1); }
+  #board { display:grid; grid-template-columns:repeat(6,100px); grid-template-rows:repeat(4,100px); gap:12px; margin:0 auto; }
+  .card { width:100px; height:100px; perspective:600px; cursor:pointer; }
+  .card-inner { width:100%; height:100%; position:relative; transition:transform 0.6s cubic-bezier(0.175,0.885,0.32,1.275); transform-style:preserve-3d; }
+  .card.flipped .card-inner { transform:rotateY(180deg); }
+  .card.matched .card-inner { transform:rotateY(180deg); }
+  .card-face { position:absolute; width:100%; height:100%; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:48px; backface-visibility:hidden; box-shadow:0 10px 20px rgba(0,0,0,0.05); }
+  .card-front { background:linear-gradient(145deg,#fff,#ffe4f0); border:2px solid rgba(243,33,156,0.4); box-shadow:0 0 15px rgba(243,33,156,0.1) inset; }
+  .card-front::after { content:'?'; color:rgba(243,33,156,0.6); font-size:36px; text-shadow:0 0 10px rgba(243,33,156,0.4); font-weight:bold; }
+  .card-back { background:linear-gradient(145deg,#fff,#ffe4f0); border:2px solid #d61a9b; transform:rotateY(180deg); box-shadow:0 0 20px rgba(243,33,156,0.2); }
+  .card.matched .card-back { border-color:#0f8; box-shadow:0 0 25px rgba(0,248,128,0.4); background:linear-gradient(145deg,#e0ffe0,#d0fcd0); }
+  .screen { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); display:none; justify-content:center; align-items:center; flex-direction:column; z-index:100; padding:20px; box-sizing:border-box; backdrop-filter:blur(4px); }
+  .screen.show { display:flex; }
+  .screen h1 { font-size:44px; margin:0 0 12px 0; color:#d61a9b; text-shadow:0 0 20px rgba(243,33,156,0.3); text-align:center; letter-spacing:2px; font-weight:700; }
+  .screen p { font-size:18px; color:#555; max-width:520px; text-align:center; line-height:1.6; margin-bottom:30px; }
+  .screen button { font-size:17px; padding:14px 44px; margin-top:10px; font-weight:bold; }
+</style>
+</head>
+<body>
+
+<div id="ui">
+  <div class="stat" id="timerEl">Время: 60</div>
+  <div class="stat" id="movesEl">Ходов: 0</div>
+  <div class="stat" id="pairsEl">Пары: 0/12</div>
+  <button id="reset">Заново</button>
+  <div class="stat" id="msgEl" style="min-width:140px;"></div>
+</div>
+
+<div id="board"></div>
+
+<div id="startScreen" class="screen show">
+  <h1>ПОРТАЛ ПАМЯТИ</h1>
+  <p>24 карточки, 12 пар символов.<br>Открой две — если совпали, пара остаётся.<br>Найди все пары за 60 секунд.</p>
+  <button id="startBtn">Начать</button>
+</div>
+
+<div id="winScreen" class="screen">
+  <h1>ТЫ МОЛОДЕЦ!</h1>
+  <p>Все пары найдены!<br>Возвращаемся в лабиринт...</p>
+  <button id="backBtn">Вернуться в лабиринт</button>
+</div>
+
+<div id="loseScreen" class="screen">
+  <h1>ВРЕМЯ ВЫШЛО</h1>
+  <p>Попробуй снова.</p>
+  <button id="retryBtn">Ещё раз</button>
+</div>
+
+<script>
+const board = document.getElementById('board');
+const timerEl = document.getElementById('timerEl');
+const movesEl = document.getElementById('movesEl');
+const pairsEl = document.getElementById('pairsEl');
+const msgEl = document.getElementById('msgEl');
+const resetBtn = document.getElementById('reset');
+const winScreen = document.getElementById('winScreen');
+const loseScreen = document.getElementById('loseScreen');
+const startScreen = document.getElementById('startScreen');
+const startBtn = document.getElementById('startBtn');
+const backBtn = document.getElementById('backBtn');
+const retryBtn = document.getElementById('retryBtn');
+
+const SYMBOLS = ['\u2B50','\u2728','\u2604','\u2665','\u2660','\u2663','\u2666','\u2744','\u2600','\u2601','\u2602','\u2603'];
+
+let cards = [], firstCard = null, secondCard = null, lock = false;
+let moves = 0, pairs = 0, timeLeft = 60, timerInterval, gameActive = false;
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function buildBoard() {
+  board.innerHTML = '';
+  cards = [];
+  const deck = [...SYMBOLS, ...SYMBOLS];
+  shuffle(deck);
+  deck.forEach(sym => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.symbol = sym;
+    const inner = document.createElement('div');
+    inner.className = 'card-inner';
+    const front = document.createElement('div');
+    front.className = 'card-face card-front';
+    const back = document.createElement('div');
+    back.className = 'card-face card-back';
+    back.textContent = sym;
+    inner.appendChild(front);
+    inner.appendChild(back);
+    card.appendChild(inner);
+    board.appendChild(card);
+    cards.push(card);
+    card.addEventListener('click', () => onCardClick(card));
+  });
+}
+
+function onCardClick(card) {
+  if (!gameActive || lock) return;
+  if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+  if (firstCard && secondCard) return;
+  card.classList.add('flipped');
+  if (!firstCard) { firstCard = card; return; }
+  secondCard = card;
+  moves++;
+  movesEl.textContent = 'Ходов: ' + moves;
+  lock = true;
+  if (firstCard.dataset.symbol === secondCard.dataset.symbol) {
+    setTimeout(() => {
+      firstCard.classList.add('matched');
+      secondCard.classList.add('matched');
+      firstCard = null; secondCard = null; lock = false;
+      pairs++;
+      pairsEl.textContent = 'Пары: ' + pairs + '/12';
+      msgEl.textContent = '';
+      if (pairs === 12) winGame();
+    }, 400);
+  } else {
+    setTimeout(() => {
+      firstCard.classList.remove('flipped');
+      secondCard.classList.remove('flipped');
+      firstCard = null; secondCard = null; lock = false;
+    }, 800);
+    msgEl.textContent = 'Не совпало!'; msgEl.style.color = '#d61a9b';
+    setTimeout(() => { msgEl.textContent = ''; }, 800);
+  }
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (!gameActive) return;
+    timeLeft--;
+    timerEl.textContent = 'Время: ' + timeLeft;
+    if (timeLeft <= 0) { gameActive = false; clearInterval(timerInterval); loseScreen.classList.add('show'); }
+  }, 1000);
+}
+
+function startGame() {
+  moves = 0; pairs = 0; timeLeft = 60; gameActive = true;
+  movesEl.textContent = 'Ходов: 0';
+  pairsEl.textContent = 'Пары: 0/12';
+  timerEl.textContent = 'Время: 60';
+  msgEl.textContent = '';
+  winScreen.classList.remove('show');
+  loseScreen.classList.remove('show');
+  buildBoard();
+  startTimer();
+}
+
+function winGame() {
+  gameActive = false;
+  clearInterval(timerInterval);
+  const score = Math.max(0, timeLeft * 10 - moves * 3);
+  msgEl.innerHTML = 'Победа! Очки: ' + score;
+  msgEl.style.color = '#0f8';
+  setTimeout(() => { winScreen.classList.add('show'); }, 500);
+}
+
+startBtn.addEventListener('click', () => { startScreen.classList.remove('show'); startGame(); });
+resetBtn.addEventListener('click', startGame);
+backBtn.addEventListener('click', () => { location.href = 'index.html'; });
+retryBtn.addEventListener('click', () => { loseScreen.classList.remove('show'); startGame(); });
+</script>
+</body>
+</html>
+-1g
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Memory Match</title>
+<style>
+  body { margin:0; background:linear-gradient(135deg,#ffeef5,#fff8f0); color:#333; font-family:'Segoe UI',Tahoma,sans-serif; overflow:hidden; display:flex; flex-direction:column; align-items:center; min-height:100vh; justify-content:center; }
+  #ui { display:flex; gap:20px; align-items:center; margin-bottom:24px; padding:14px 28px; background:rgba(255,255,255,0.8); border:1px solid rgba(243,33,156,0.3); border-radius:20px; backdrop-filter:blur(10px); font-size:16px; box-shadow:0 4px 15px rgba(243,33,156,0.1); }
+  .stat { text-shadow:0 0 4px rgba(243,33,156,0.4); min-width:110px; text-align:center; font-weight:600; color:#d61a9b; }
+  button { background:#fff; color:#d61a9b; border:2px solid #d61a9b; padding:10px 22px; font-size:15px; cursor:pointer; border-radius:50px; transition:all 0.2s; font-family:monospace; box-shadow:0 0 0 0 rgba(243,33,156,0.3); }
+  button:hover:not(:disabled) { background:#d61a9b; color:#fff; transform:scale(1.05); box-shadow:0 0 15px rgba(243,33,156,0.5); }
+  button:disabled { opacity:0.5; cursor:not-allowed; filter:grayscale(1); }
+  #board { display:grid; grid-template-columns:repeat(6,100px); grid-template-rows:repeat(4,100px); gap:12px; margin:0 auto; }
+  .card { width:100px; height:100px; perspective:600px; cursor:pointer; }
+  .card-inner { width:100%; height:100%; position:relative; transition:transform 0.6s cubic-bezier(0.175,0.885,0.32,1.275); transform-style:preserve-3d; }
+  .card.flipped .card-inner { transform:rotateY(180deg); }
+  .card.matched .card-inner { transform:rotateY(180deg); }
+  .card-face { position:absolute; width:100%; height:100%; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:48px; backface-visibility:hidden; box-shadow:0 10px 20px rgba(0,0,0,0.05); }
+  .card-front { background:linear-gradient(145deg,#fff,#ffe4f0); border:2px solid rgba(243,33,156,0.4); box-shadow:0 0 15px rgba(243,33,156,0.1) inset; }
+  .card-front::after { content:'?'; color:rgba(243,33,156,0.6); font-size:36px; text-shadow:0 0 10px rgba(243,33,156,0.4); font-weight:bold; }
+  .card-back { background:linear-gradient(145deg,#fff,#ffe4f0); border:2px solid #d61a9b; transform:rotateY(180deg); box-shadow:0 0 20px rgba(243,33,156,0.2); }
+  .card.matched .card-back { border-color:#0f8; box-shadow:0 0 25px rgba(0,248,128,0.4); background:linear-gradient(145deg,#e0ffe0,#d0fcd0); }
+  .screen { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); display:none; justify-content:center; align-items:center; flex-direction:column; z-index:100; padding:20px; box-sizing:border-box; backdrop-filter:blur(4px); }
+  .screen.show { display:flex; }
+  .screen h1 { font-size:44px; margin:0 0 12px 0; color:#d61a9b; text-shadow:0 0 20px rgba(243,33,156,0.3); text-align:center; letter-spacing:2px; font-weight:700; }
+  .screen p { font-size:18px; color:#555; max-width:520px; text-align:center; line-height:1.6; margin-bottom:30px; }
+  .screen button { font-size:17px; padding:14px 44px; margin-top:10px; font-weight:bold; }
+</style>
+</head>
+<body>
+
+<div id="ui">
+  <div class="stat" id="timerEl">Время: 60</div>
+  <div class="stat" id="movesEl">Ходов: 0</div>
+  <div class="stat" id="pairsEl">Пары: 0/12</div>
+  <button id="reset">Заново</button>
+  <div class="stat" id="msgEl" style="min-width:140px;"></div>
+</div>
+
+<div id="board"></div>
+
+<div id="startScreen" class="screen show">
+  <h1>ПОРТАЛ ПАМЯТИ</h1>
+  <p>24 карточки, 12 пар символов.<br>Открой две — если совпали, пара остаётся.<br>Найди все пары за 60 секунд.</p>
+  <button id="startBtn">Начать</button>
+</div>
+
+<div id="winScreen" class="screen">
+  <h1>ТЫ МОЛОДЕЦ!</h1>
+  <p>Все пары найдены!<br>Возвращаемся в лабиринт...</p>
+  <button id="backBtn">Вернуться в лабиринт</button>
+</div>
+
+<div id="loseScreen" class="screen">
+  <h1>ВРЕМЯ ВЫШЛО</h1>
+  <p>Попробуй снова.</p>
+  <button id="retryBtn">Ещё раз</button>
+</div>
+
+<script>
+const board = document.getElementById('board');
+const timerEl = document.getElementById('timerEl');
+const movesEl = document.getElementById('movesEl');
+const pairsEl = document.getElementById('pairsEl');
+const msgEl = document.getElementById('msgEl');
+const resetBtn = document.getElementById('reset');
+const winScreen = document.getElementById('winScreen');
+const loseScreen = document.getElementById('loseScreen');
+const startScreen = document.getElementById('startScreen');
+const startBtn = document.getElementById('startBtn');
+const backBtn = document.getElementById('backBtn');
+const retryBtn = document.getElementById('retryBtn');
+
+const SYMBOLS = ['\u2B50','\u2728','\u2604','\u2665','\u2660','\u2663','\u2666','\u2744','\u2600','\u2601','\u2602','\u2603'];
+
+let cards = [], firstCard = null, secondCard = null, lock = false;
+let moves = 0, pairs = 0, timeLeft = 60, timerInterval, gameActive = false;
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function buildBoard() {
+  board.innerHTML = '';
+  cards = [];
+  const deck = [...SYMBOLS, ...SYMBOLS];
+  shuffle(deck);
+  deck.forEach(sym => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.symbol = sym;
+    const inner = document.createElement('div');
+    inner.className = 'card-inner';
+    const front = document.createElement('div');
+    front.className = 'card-face card-front';
+    const back = document.createElement('div');
+    back.className = 'card-face card-back';
+    back.textContent = sym;
+    inner.appendChild(front);
+    inner.appendChild(back);
+    card.appendChild(inner);
+    board.appendChild(card);
+    cards.push(card);
+    card.addEventListener('click', () => onCardClick(card));
+  });
+}
+
+function onCardClick(card) {
+  if (!gameActive || lock) return;
+  if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+  if (firstCard && secondCard) return;
+  card.classList.add('flipped');
+  if (!firstCard) { firstCard = card; return; }
+  secondCard = card;
+  moves++;
+  movesEl.textContent = 'Ходов: ' + moves;
+  lock = true;
+  if (firstCard.dataset.symbol === secondCard.dataset.symbol) {
+    setTimeout(() => {
+      firstCard.classList.add('matched');
+      secondCard.classList.add('matched');
+      firstCard = null; secondCard = null; lock = false;
+      pairs++;
+      pairsEl.textContent = 'Пары: ' + pairs + '/12';
+      msgEl.textContent = '';
+      if (pairs === 12) winGame();
+    }, 400);
+  } else {
+    setTimeout(() => {
+      firstCard.classList.remove('flipped');
+      secondCard.classList.remove('flipped');
+      firstCard = null; secondCard = null; lock = false;
+    }, 800);
+    msgEl.textContent = 'Не совпало!'; msgEl.style.color = '#d61a9b';
+    setTimeout(() => { msgEl.textContent = ''; }, 800);
+  }
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (!gameActive) return;
+    timeLeft--;
+    timerEl.textContent = 'Время: ' + timeLeft;
+    if (timeLeft <= 0) { gameActive = false; clearInterval(timerInterval); loseScreen.classList.add('show'); }
+  }, 1000);
+}
+
+function startGame() {
+  moves = 0; pairs = 0; timeLeft = 60; gameActive = true;
+  movesEl.textContent = 'Ходов: 0';
+  pairsEl.textContent = 'Пары: 0/12';
+  timerEl.textContent = 'Время: 60';
+  msgEl.textContent = '';
+  winScreen.classList.remove('show');
+  loseScreen.classList.remove('show');
+  buildBoard();
+  startTimer();
+}
+
+function winGame() {
+  gameActive = false;
+  clearInterval(timerInterval);
+  const score = Math.max(0, timeLeft * 10 - moves * 3);
+  msgEl.innerHTML = 'Победа! Очки: ' + score;
+  msgEl.style.color = '#0f8';
+  setTimeout(() => { winScreen.classList.add('show'); }, 500);
+}
+
+startBtn.addEventListener('click', () => { startScreen.classList.remove('show'); startGame(); });
+resetBtn.addEventListener('click', startGame);
+backBtn.addEventListener('click', () => { location.href = 'index.html'; });
+retryBtn.addEventListener('click', () => { loseScreen.classList.remove('show'); startGame(); });
+</script>
+</body>
+</html>
+>>>>>>> 0bc2a63a545481e550f1bdf4233898f2067316fb
