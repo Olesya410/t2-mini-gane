@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Видео и игра</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-color: #f0f0f0;
+    }
+
+    #videoWrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    video {
+      max-width: 90%;
+      border-radius: 8px;
+    }
+
+    /* Кнопка включения звука */
+    #soundBtn {
+      position: absolute;
+      top: 40px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      z-index: 20;
+    }
+    #soundBtn:hover { background: #555; }
+
+    /* Оверлей */
+    #blackOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    #blackOverlay.show {
+      display: flex;
+    }
+    #blackOverlay .content {
+      background: url('image/фон.jpg') no-repeat center/cover;
+      padding: 20px;
+      border-radius: 10px;
+      color: #0f0101;
+      text-align: center;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+    }
+    .content-text {
+      max-width: 80%;
+    }
+
+    /* Кнопка «Перейти дальше» */
+    #nextLevelBtn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 24px;
+      font-size: 16px;
+      background: #f3219c;
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      text-decoration: none;
+      cursor: pointer;
+      font-family: sans-serif;
+    }
+    #nextLevelBtn:hover {
+      background: #d61b83;
+    }
+
+    /* Контейнер игры */
+    #gameContainer {
+      width: 400px;
+      max-width: 90%;
+      height: 700px;
+      background: #fff;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      border-radius: 16px;
+      overflow: hidden;
+      display: none;
+      margin-top: 20px;
+    }
+    #gameContainer canvas {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <button id="soundBtn">🔊 Включить звук</button>
+
+  <div id="videoWrapper">
+    <video id="introVideo" src="video/1.mp4" autoplay muted playsinline></video>
+  </div>
+
+  <div id="blackOverlay">
+    <div class="content">
+      <div class="content-text">
+        <div style="font-size: 30px; margin-bottom: 20px;">Ты готов пройти игру и узнать лучше профессию инженер‑телеком!</div>
+        <div style="font-size: 26px;">Тебе предстоит 3 уровня: от спасения с дрона до прокладки сети. Удачи!</div>
+        <!-- Кнопка вместо ссылки -->
+        <button id="nextLevelBtn">Перейти дальше</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+  </div>
+
+  <script>
+    const video = document.getElementById('introVideo');
+    const overlay = document.getElementById('blackOverlay');
+    const gameContainer = document.getElementById('gameContainer');
+    const videoWrapper = document.getElementById('videoWrapper');
+    const soundBtn = document.getElementById('soundBtn');
+    const nextLevelBtn = document.getElementById('nextLevelBtn');
+
+    let soundEnabled = false;
+
+    // Кнопка «Включить звук»
+    soundBtn.addEventListener('click', () => {
+      if (soundEnabled) return;
+      soundEnabled = true;
+      soundBtn.style.display = 'none';
+
+      video.muted = false;
+      video.play().catch(e => {
+        console.log('Автовоспроизведение со звуком заблокировано браузером:', e);
+      });
+    });
+
+    // Когда видео закончится — показываем оверлей
+    video.onended = () => {
+      overlay.classList.add('show');
+      overlay.style.display = 'flex';
+    };
+
+    // Кнопка «Перейти дальше»: сначала показываем игру, потом переходим
+    nextLevelBtn.addEventListener('click', () => {
+      // Скрываем видео и оверлей
+      videoWrapper.style.display = 'none';
+      overlay.style.display = 'none';
+
+      // Показываем контейнер игры
+      gameContainer.style.display = 'block';
+
+      console.log('Игра запущена (анимация/загрузка)');
+
+      // Переход на следующую страницу через 0.5 секунды
+      setTimeout(() => {
+        window.location.href = 'level1.html';
+      }, 100);
+    });
+  </script>
+</body>
+</html>

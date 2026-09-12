@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Pipe Connect: Инженер</title>
+<style>
+  body { margin:0; padding:0; background:#0f121a; color:#e0e4ec; font-family:monospace,sans-serif; overflow:hidden; }
+  .grid-bg {
+    position:fixed; top:0; left:0; right:0; bottom:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size:40px 40px; z-index:0;
+  }
+  canvas {
+    display:block; margin:20px auto;
+    box-shadow:0 0 24px rgba(0,0,0,0.6);
+    border:1px solid rgba(100,120,160,0.3);
+    border-radius:6px; background:rgba(15,18,26,0.9); z-index:1;
+  }
+  #ui {
+    position:fixed; bottom:10px; left:50%; transform:translateX(-50%);
+    display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:center;
+    padding:10px 20px; background:rgba(30,36,50,0.8); backdrop-filter:blur(8px);
+    border:1px solid rgba(80,100,140,0.4); border-radius:12px;
+    font-size:14px; z-index:10; box-shadow:0 4px 16px rgba(0,0,0,0.5);
+  }
+  button {
+    background:#2a3347; color:#a5c4ff;
+    border:1px solid rgba(163,196,255,0.3);
+    padding:8px 18px; cursor:pointer; border-radius:8px;
+    transition:all 0.15s; font-family:monospace; font-size:13px;
+  }
+  button:hover:not(:disabled) { background:#3d4b6a; color:#fff; transform:scale(1.03); box-shadow:0 0 12px rgba(163,196,255,0.25); }
+  button:disabled { opacity:0.4; cursor:not-allowed; filter:grayscale(1); }
+  #runBtn { background:#1a9850; color:#fff; border-color:rgba(26,152,80,0.5); }
+  #runBtn:hover:not(:disabled) { background:#2db36a; color:#000; box-shadow:0 0 16px rgba(26,152,80,0.45); }
+  .stat { min-width:90px; text-align:center; font-weight:700; color:#c5d2e0; letter-spacing:0.5px; }
+  .screen {
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(15,20,30,0.92); display:flex; flex-direction:column;
+    justify-content:center; align-items:center; z-index:100;
+    padding:20px; box-sizing:border-box; backdrop-filter:blur(6px);
+  }
+  .screen.hidden { display:none; }
+  .screen h1 {
+    font-size:32px; margin:0 0 14px 0; color:#a5c4ff;
+    text-shadow:0 0 8px rgba(163,196,255,0.35);
+    text-transform:uppercase; letter-spacing:2px;
+  }
+  .screen p { font-size:16px; color:#b8c2d4; max-width:560px; line-height:1.5; text-align:center; margin-bottom:22px; }
+  .screen button { padding:12px 32px; font-size:15px; background:#1a9850; color:#fff; border-color:rgba(26,152,80,0.6); }
+  .screen button:hover { background:#2db36a; color:#000; box-shadow:0 0 18px rgba(26,152,80,0.5); }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<canvas id="game"></canvas>
+
+<div id="ui">
+  <div class="stat" id="timerEl">Время: 120</div>
+  <div class="stat" id="turnsEl">Поворотов: 0</div>
+  <div class="stat" id="connEl">Соединено: 0/35</div>
+  <button id="reset">Новый уровень</button>
+  <button id="runBtn" disabled>Запустить сигнал</button>
+  <div class="stat" id="msgEl" style="min-width:180px;"></div>
+</div>
+
+<div id="startScreen" class="screen">
+  <h1>ЗАДАНИЕ ИНЖЕНЕРА</h1>
+  <p>
+    Город теряет питание. Твоя задача — восстановить энергосеть,<br>
+    соединив источник (зелёная точка) со всеми потребителями (красные точки).<br><br>
+    <strong>Что делать:</strong><br>
+    • Кликни на трубу, чтобы повернуть её на 90°.<br>
+    • Выстрой непрерывный путь от «SRC» до всех «END».<br>
+    • Следи за счётчиком поворотов — чем меньше, тем выше рейтинг.<br>
+    • У тебя есть 120 секунд — не дай сработать аварийной защите.
+  </p>
+  <button id="startBtn">Принять заказ</button>
+</div>
+
+<div id="winScreen" class="screen hidden">
+  <h1>РАБОТА ВЫПОЛНЕНА!</h1>
+  <p>Все линии соединены, пустот нет. Сеть стабильна.</p>
+  <button id="nextLevel">Следующий уровень</button>
+</div>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const timerEl = document.getElementById('timerEl');
+const turnsEl = document.getElementById('turnsEl');
+const connEl = document.getElementById('connEl');
+const msgEl = document.getElementById('msgEl');
+const resetBtn = document.getElementById('reset');
+const runBtn = document.getElementById('runBtn');
+const winScreen = document.getElementById('winScreen');
+const nextLevelBtn = document.getElementById('nextLevel');
+const startScreen = document.getElementById('startScreen');
+const startBtn = document.getElementById('startBtn');
+
+const COLS = 7, ROWS = 5, CELL = 90;
+canvas.width = COLS * CELL;
+canvas.height = ROWS * CELL;
+const DR = [-1, 0, 1, 0];
+const DC = [0, 1, 0, -1];
+const TYPES = { straight:[0,2], corner:[0,1], source:[0,2], endpoint:[0,2] };
+
+let grid = [], packets = [], turns = 0, timeLeft = 120, timerInterval;
+let gameActive = true, signalRunning = false, allConnected = false;
+
+function showScreen(id, show) {
+  const s = document.getElementById(id);
+  if (show) s.classList.remove('hidden'); else s.classList.add('hidden');
+}
+
+startBtn.addEventListener('click', () => { showScreen('startScreen', false); initLevel(); });
+
+class Cell {
+  constructor(type, r, c) {
+    this.type = type; this.ports = [...TYPES[type]]; this.rotation = 0;
+    this.r = r; this.c = c; this.connected = false; this.signalGlow = 0;
+  }
+  getPorts() { return this.ports.map(p => (p + this.rotation) % 4); }
+  hasPort(d) { return this.getPorts().includes(d); }
+  getCenter() { return { x: this.c*CELL+CELL/2, y: this.r*CELL+CELL/2 }; }
+  draw() {
+    const cx = this.c*CELL+CELL/2, cy = this.r*CELL+CELL/2;
+    ctx.fillStyle = this.connected ? 'rgba(26,152,80,0.1)' : 'rgba(255,255,255,0.02)';
+    ctx.fillRect(this.c*CELL+4, this.r*CELL+4, CELL-8, CELL-8);
+    this.getPorts().forEach(d => {
+      const nr = this.r+DR[d], nc = this.c+DC[d];
+      const nbOn = this.connected && nr>=0 && nr<ROWS && nc>=0 && nc<COLS && grid[nr] && grid[nr][nc] && grid[nr][nc].connected;
+      ctx.strokeStyle = nbOn ? '#1a9850' : '#4a6085';
+      ctx.lineWidth = nbOn ? 6 : 3;
+      ctx.shadowBlur = nbOn ? 10 : 0;
+      ctx.shadowColor = nbOn ? '#1a9850' : 'transparent';
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+DC[d]*(CELL/2), cy+DR[d]*(CELL/2)); ctx.stroke();
+    });
+    ctx.shadowBlur = 0;
+    if (this.signalGlow > 0) {
+      ctx.fillStyle = 'rgba(255,255,255,' + (this.signalGlow*0.7) + ')';
+      ctx.shadowBlur = 18; ctx.shadowColor = '#1a9850';
+      ctx.beginPath(); ctx.arc(cx, cy, 12+this.signalGlow*8, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+    const isSrc = this.type === 'source', isEnd = this.type === 'endpoint';
+    ctx.fillStyle = isSrc ? '#1a9850' : isEnd ? '#f44' : 'rgba(74,96,133,0.7)';
+    ctx.beginPath(); ctx.arc(cx, cy, isSrc||isEnd ? 16 : 10, 0, Math.PI*2); ctx.fill();
+    if (isSrc || isEnd) {
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(isSrc ? 'SRC' : 'END', cx, cy);
+    } else {
+      ctx.fillStyle = '#4a6085'; ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI*2); ctx.fill();
+    }
+  }
+}
+
+class SignalPacket {
+  constructor(path) {
+    this.path = path; this.segIndex = 0; this.progress = 0;
+    this.speed = 0.04; this.done = false;
+    const s = path[0].getCenter(); this.x = s.x; this.y = s.y; path[0].signalGlow = 1;
+  }
+  update() {
+    if (this.done) return;
+    this.progress += this.speed;
+    if (this.progress >= 1) {
+      this.segIndex++; this.progress = 0;
+      if (this.segIndex >= this.path.length - 1) {
+        const last = this.path[this.path.length-1], c = last.getCenter();
+        this.x = c.x; this.y = c.y; last.signalGlow = 1; this.done = true; return;
+      }
+      this.path[this.segIndex].signalGlow = 1;
+    }
+    const a = this.path[this.segIndex].getCenter(), b = this.path[this.segIndex+1].getCenter();
+    this.x = a.x + (b.x-a.x)*this.progress; this.y = a.y + (b.y-a.y)*this.progress;
+  }
+  draw() {
+    if (this.done) return;
+    ctx.fillStyle = '#fff'; ctx.shadowBlur = 14; ctx.shadowColor = '#1a9850';
+    ctx.beginPath(); ctx.arc(this.x, this.y, 7, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+  }
+}
+
+function initLevel() {
+  grid = []; turns = 0; timeLeft = 120; gameActive = true;
+  signalRunning = false; packets = []; allConnected = false;
+  turnsEl.textContent = 'Поворотов: 0'; timerEl.textContent = 'Время: 120';
+  msgEl.textContent = ''; msgEl.style.color = '#a5c4ff';
+  runBtn.disabled = true; showScreen('winScreen', false);
+  for (let r = 0; r < ROWS; r++) { grid[r] = []; for (let c = 0; c < COLS; c++) grid[r][c] = null; }
+  let path = [];
+  for (let r = 0; r < ROWS; r++) {
+    if (r % 2 === 0) { for (let c = 0; c < COLS; c++) path.push([r,c]); }
+    else { for (let c = COLS-1; c >= 0; c--) path.push([r,c]); }
+  }
+  let end2Index = -1;
+  for (let i = Math.floor(path.length*0.2); i < Math.floor(path.length*0.5); i++) {
+    const [r,c] = path[i], prev = path[i-1], next = path[i+1];
+    if (prev && next && prev[0]===r && next[0]===r) { end2Index = i; break; }
+  }
+  for (let i = 0; i < path.length; i++) {
+    const [r,c] = path[i], prev = i>0 ? path[i-1] : null, next = i<path.length-1 ? path[i+1] : null;
+    let dirIn = -1, dirOut = -1;
+    if (prev) {
+      if (prev[0]<r) dirIn=0; else if (prev[0]>r) dirIn=2;
+      else if (prev[1]<c) dirIn=3; else if (prev[1]>c) dirIn=1;
+    }
+    if (next) {
+      if (next[0]<r) dirOut=0; else if (next[0]>r) dirOut=2;
+      else if (next[1]<c) dirOut=3; else if (next[1]>c) dirOut=1;
+    }
+    let type = 'straight', rotation = 0;
+    let isH = prev && next && prev[0]===r && next[0]===r;
+    let isV = prev && next && prev[1]===c && next[1]===c;
+    if (i === 0) { type = 'source'; rotation = (dirOut===0||dirOut===2) ? 0 : 1; }
+    else if (i === path.length-1) { type = 'endpoint'; rotation = (dirIn===0||dirIn===2) ? 0 : 1; }
+    else if (i === end2Index) { type = 'endpoint'; rotation = isH ? 1 : 0; }
+    else {
+      if (isH) { type='straight'; rotation=1; }
+      else if (isV) { type='straight'; rotation=0; }
+      else {
+        type = 'corner'; const ds = [dirIn,dirOut].sort((a,b)=>a-b);
+        if (ds[0]===0&&ds[1]===1) rotation=0; else if (ds[0]===1&&ds[1]===2) rotation=1;
+        else if (ds[0]===2&&ds[1]===3) rotation=2; else if (ds[0]===0&&ds[1]===3) rotation=3;
+      }
+    }
+    grid[r][c] = new Cell(type, r, c); grid[r][c].rotation = rotation;
+  }
+  let attempts = 0;
+  do {
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
+      if (grid[r][c] && grid[r][c].type !== 'source' && grid[r][c].type !== 'endpoint')
+        grid[r][c].rotation = Math.floor(Math.random()*4);
+    attempts++;
+  } while (checkConnections() && attempts < 20);
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (!gameActive || signalRunning) return;
+    timeLeft--; timerEl.textContent = 'Время: ' + timeLeft;
+    if (timeLeft <= 0) { gameActive = false; clearInterval(timerInterval); msgEl.textContent = 'Время вышло!'; msgEl.style.color = '#f44'; }
+  }, 1000);
+}
+
+function findPath(source, target) {
+  const visited = new Set(), parent = new Map();
+  const key = n => n.r + ',' + n.c; visited.add(key(source));
+  const queue = [source];
+  while (queue.length > 0) {
+    const cell = queue.shift();
+    if (cell === target) {
+      const p = []; let cur = target;
+      while (cur) { p.unshift(cur); cur = parent.get(key(cur)); }
+      return p;
+    }
+    cell.getPorts().forEach(d => {
+      const nr = cell.r+DR[d], nc = cell.c+DC[d];
+      if (nr<0||nr>=ROWS||nc<0||nc>=COLS) return;
+      if (!grid[nr]||!grid[nr][nc]) return;
+      const nb = grid[nr][nc], k = key(nb);
+      if (visited.has(k)) return;
+      if (!nb.hasPort((d+2)%4)) return;
+      visited.add(k); parent.set(k, cell); queue.push(nb);
+    });
+  }
+  return null;
+}
+
+function checkConnections() {
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
+    if (grid[r][c]) { grid[r][c].connected = false; grid[r][c].signalGlow = 0; }
+  let source = null;
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
+    if (grid[r][c] && grid[r][c].type === 'source') source = grid[r][c];
+  if (!source) return false;
+  source.connected = true;
+  const queue = [source];
+  while (queue.length > 0) {
+    const cell = queue.shift();
+    cell.getPorts().forEach(d => {
+      const nr = cell.r+DR[d], nc = cell.c+DC[d];
+      if (nr<0||nr>=ROWS||nc<0||nc>=COLS) return;
+      if (!grid[nr]||!grid[nr][nc]) return;
+      const nb = grid[nr][nc];
+      if (nb.connected) return;
+      if (!nb.hasPort((d+2)%4)) return;
+      nb.connected = true; queue.push(nb);
+    });
+  }
+  let connCount = 0, totalCount = 0, epConn = 0, epTotal = 0;
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
+    if (grid[r][c]) {
+      totalCount++; if (grid[r][c].connected) connCount++;
+      if (grid[r][c].type === 'endpoint') { epTotal++; if (grid[r][c].connected) epConn++; }
+    }
+  connEl.textContent = 'Соединено: ' + connCount + '/' + totalCount;
+  if (connCount === totalCount && epConn === epTotal) {
+    allConnected = true; runBtn.disabled = false;
+    msgEl.textContent = 'Всё соединено! Запускай сигнал'; msgEl.style.color = '#1a9850'; return true;
+  } else {
+    allConnected = false; runBtn.disabled = true;
+    if (gameActive) msgEl.textContent = ''; return false;
+  }
+}
+
+function runSignal() {
+  if (!allConnected || signalRunning || !gameActive) return;
+  signalRunning = true; runBtn.disabled = true; clearInterval(timerInterval);
+  msgEl.textContent = 'Сигнал идёт...'; msgEl.style.color = '#a5c4ff';
+  let source = null; const endpoints = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
+    if (grid[r][c]) {
+      if (grid[r][c].type === 'source') source = grid[r][c];
+      if (grid[r][c].type === 'endpoint') endpoints.push(grid[r][c]);
+    }
+  packets = [];
+  endpoints.forEach(ep => { const p = findPath(source, ep); if (p) packets.push(new SignalPacket(p)); });
+}
+
+resetBtn.addEventListener('click', initLevel);
+nextLevelBtn.addEventListener('click', initLevel);
+runBtn.addEventListener('click', runSignal);
+
+canvas.addEventListener('click', e => {
+  if (!gameActive || signalRunning) return;
+  const rect = canvas.getBoundingClientRect();
+  const c = Math.floor((e.clientX - rect.left) / CELL);
+  const r = Math.floor((e.clientY - rect.top) / CELL);
+  if (r<0||r>=ROWS||c<0||c>=COLS) return;
+  if (!grid[r]||!grid[r][c]) return;
+  const cell = grid[r][c];
+  if (cell.type === 'source' || cell.type === 'endpoint') return;
+  cell.rotation = (cell.rotation + 1) % 4;
+  turns++; turnsEl.textContent = 'Поворотов: ' + turns;
+  checkConnections();
+});
+
+function loop() {
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
+    if (grid[r] && grid[r][c] && grid[r][c].signalGlow > 0) grid[r][c].signalGlow *= 0.92;
+  if (signalRunning) {
+    packets.forEach(p => p.update());
+    if (packets.length > 0 && packets.every(p => p.done)) {
+      signalRunning = false; gameActive = false;
+      const score = Math.max(0, timeLeft * 10 - turns * 3);
+      msgEl.innerHTML = 'Сигнал доставлен! Очки: ' + score; msgEl.style.color = '#1a9850';
+      showScreen('winScreen', true);
+    }
+  }
+  ctx.fillStyle = '#0f121a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = 'rgba(50,80,150,0.12)'; ctx.lineWidth = 1;
+  for (let r = 0; r <= ROWS; r++) { ctx.beginPath(); ctx.moveTo(0, r*CELL); ctx.lineTo(canvas.width, r*CELL); ctx.stroke(); }
+  for (let c = 0; c <= COLS; c++) { ctx.beginPath(); ctx.moveTo(c*CELL, 0); ctx.lineTo(c*CELL, canvas.height); ctx.stroke(); }
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
+    if (grid[r] && grid[r][c]) grid[r][c].draw();
+  packets.forEach(p => p.draw());
+  requestAnimationFrame(loop);
+}
+
+initLevel();
+loop();
+</script>
+</body>
+</html>
